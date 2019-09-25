@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- in the absence of the class attribute, assume ch.qos.logback.core.hook.DefaultShutdownHook -->
+    <!--<shutdownHook/>-->
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>warn</level>
+          <!--<level>info</level>-->
+          <!--<level>debug</level>-->
+        </filter>
+    </appender>
+
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>target/embedded-kafka.log</file>
+        <append>true</append>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- ASYNC APPENDERS -->
+    <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="FILE"/>
+    </appender>
+
+    <appender name="ASYNC_STDOUT" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="STDOUT"/>
+    </appender>
+
+
+    <root level="debug">
+        <!--<appender-ref ref="STDOUT"/>-->
+        <appender-ref ref="ASYNC_FILE"/>
+        <appender-ref ref="ASYNC_STDOUT"/>
+    </root>
+
+    <logger name="akka.actor.LocalActorRef" level="warn" />
+    <logger name="akka.cluster.Cluster" level="warn" />
+    <logger name="akka.cluster.AutoDown" level="error" />
+    <logger name="akka.event.EventStream" level="warn" />
+    <logger name="akka.event.slf4j.Slf4jLogger" level="warn" />
+    <logger name="akka.remote.RemoteActorRefProvider" level="warn" />
+    <logger name="akka.remote.Remoting" level="warn" />
+
+    <!--<logger name="akka.actor.LocalActorRef" level="debug" />-->
+    <!--<logger name="akka.event.slf4j.Slf4jLogger" level="debug" />-->
+    <!--<logger name="akka.remote.RemoteActorRefProvider" level="debug" />-->
+    <!--<logger name="akka.remote.Remoting" level="debug" />-->
+    <!--<logger name="akka" level="trace" />-->
+
+    <!--<logger name="kafka" level="warn" />-->
+    <logger name="kafka.server.BrokerMetadataCheckpoint" level="error" />
+    <!--<logger name="org.apache.kafka" level="warn" />-->
+    <logger name="org.apache.kafka.common.metrics.Metrics" level="info" />
+    <!--<logger name="org.apache.kafka.clients.NetworkClient" level="error" />-->
+    <logger name="org.apache.kafka.clients" level="info" />
+    <logger name="org.apache.kafka.clients.consumer.ConsumerConfig" level="error" />
+    <logger name="org.apache.kafka.streams.processor.internals" level="info" />
+    <logger name="org.apache.kafka.streams.kstream.internals" level="info" />
+
+    <!--<logger name="org.apache.zookeeper" level="warn" />-->
+    <logger name="org.apache.zookeeper.ZooKeeper" level="warn" />
+    <logger name="org.apache.zookeeper.server.ZooKeeperServer" level="warn" />
+    <logger name="org.apache.zookeeper.server.NIOServerCnxn" level="error" />
+
+    <!--<logger name="ru.sberbank.bigdata.ctl" level="trace" />-->
+    <logger name="ru.sberbank.bigdata.ctl" level="debug" />
+    <logger name="ru.sberbank.bigdata.ctl.kafka.config" level="info" />
+    <!--<logger name="ru.sberbank.bigdata.ctl" level="warn" />-->
+
+</configuration>

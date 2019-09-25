@@ -1,0 +1,67 @@
+# EditorConfig is awesome: http://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+# Unix-style newlines with a newline ending every file
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+max_line_length = 80
+indent_style = space
+indent_size = 2
+
+[*.scala]
+max_line_length = 120
+indent_size = 2
+
+[*.java]
+max_line_length = 120
+
+# Preserve trailing whitespace for Markdown files
+[*.{md,adoc}]
+trim_trailing_whitespace = false
+
+#[COMMIT_EDITMSG]
+#max_line_length = 0
+
+# 4 space indentation
+[*.py]
+indent_style = space
+indent_size = 4
+
+# Tab indentation (no size specified)
+[Makefile]
+indent_style = tab
+
+# Indentation override for all JS under lib directory
+[lib/**.js]
+indent_style = space
+indent_size = 2
+
+# Matches the exact files either package.json or .travis.yml
+[{package.json,.travis.yml}]
+indent_style = space
+indent_size = 2
+
+# Matches the exact files pom.xml
+[pom.xml]
+indent_style = space
+indent_size = 4
+
+# Matches the exact files pom.xml
+[logback*.xml]
+indent_style = space
+indent_size = 4
+
+# Matches settings.xml
+[settings*.xml]
+indent_style = space
+indent_size = 2
+
+# Matches Jenkinsfile
+[Jenkinsfile]
+indent_style = space
+indent_size = 2

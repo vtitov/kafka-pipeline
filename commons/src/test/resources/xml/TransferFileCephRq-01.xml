@@ -1,0 +1,25 @@
+<TransferFileCephRq xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <RqUID>ec6f1d92e4654e7aabf2c30b782d82f8</RqUID>
+    <RqTm>2019-08-27T19:55:26.985+03:00</RqTm>
+    <SPName>ssid_4</SPName>
+    <SystemId>tgtSystemID_5</SystemId>
+    <ScenarioInfo>
+        <ScenarioId>scenarioId_5</ScenarioId>
+    </ScenarioInfo>
+    <File>
+        <FileInfo>
+            <Name>sequi.jpg</Name>
+        </FileInfo>
+    </File>
+    <File>
+        <FileInfo>
+            <Name>minus.numbers</Name>
+        </FileInfo>
+    </File>
+    <File>
+        <FileInfo>
+            <Name>expedita.tiff</Name>
+        </FileInfo>
+    </File>
+</TransferFileCephRq>

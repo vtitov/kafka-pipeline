@@ -1,0 +1,108 @@
+= README
+:toc:
+:toclevels: 3
+
+== Local Build & Run
+=== Build from sbt
+[source,bash]
+----
+# -Dsbt.repository.config=./repositories \
+# -sbt-launch-repo http://nexus/.../ivy-releases_proxy \
+
+( git clone https://github.com/vtitov/kafka-pipeline.git \
+  cd kafka-pipeline && \
+  ./sbt \
+    test it:test assembly
+)
+----
+
+==== Run with Revolver
+Run sbt
+[source,bash]
+----
+sbt
+----
+From sbt REPL run
+[source,bash]
+----
+reStart
+----
+Check status
+[source,bash]
+----
+reStatus
+----
+Stop
+[source,bash]
+----
+reStop
+----
+
+==== Run from Bash Console
+Run
+[source,bash]
+----
+./service/src/main/resources/scripts/run-all.sh
+----
+Kill
+[source,bash]
+----
+./service/src/main/resources/scripts/kill-all.sh
+----
+
+==== Send via Rest Api
+[source,bash]
+----
+./service/src/main/resources/scripts/send-files.sh
+----
+
+== Help Screen
+[source,bash]
+----
+JARFILE=`ls -td kafka-pipeline/target/scala-2.12/kafka-pipeline-assembly-* | head -n1`
+java -jar $JARFILE --help
+----
+
+
+== Installation Directory
+=== Install to Current Directory
+[source,bash]
+----
+( JARFILE=path/to/kafke-pipeline-assembly.jar \
+  && mkdir -p lib/ logs/ \
+  && unzip $JARFILE 'conf/*' 'scripts/*' \
+  && cp $JARFILE lib/ )
+# Then edit conf/local-rc.sh
+----
+
+=== Run from Installation Directory 
+==== Run http service
+[source,bash]
+----
+ scripts/run-svc.sh http
+----
+
+==== Run streams service
+[source,bash]
+----
+ scripts/run-svc.sh streams
+----
+
+==== Debug with embedded kafka
+[source,bash]
+----
+scripts/run-svc.sh embedded-kafka
+----
+
+==== Debug with emulator
+[source,bash]
+----
+scripts/run-svc.sh remote-emulator
+----
+
+==== Stop all
+[source,bash]
+----
+ scripts/kill-all.sh
+----
+

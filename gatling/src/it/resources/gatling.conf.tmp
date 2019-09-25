@@ -1,0 +1,67 @@
+performance {
+    authorizationHeader = "~MANUAL_ENTRY~"
+    rampUpSeconds = 60
+    rampDownSeconds = 60
+    durationSeconds = 360
+    contentType = "application/json"
+    acceptType = "application/json"
+    rateMultiplier = 1
+    instanceMultiplier = 1
+    operationsPerSecond {
+        file = 1
+        files = 1
+        fileInfoFromRemote = 1
+    }
+    global {
+        assertions {
+            responseTime {
+                min {
+                    lte = 30000
+                    gte = 0
+                }
+                max {
+                    lte = 30000
+                    gte = 0
+                }
+                mean {
+                    lte = 30000
+                    gte = 0
+                }
+            }
+            failedRequests {
+                percent {
+                    lte = 5
+                    gte = 0
+                }
+            }
+            successfulRequests {
+                percent {
+                    lte = 100
+                    gte = 0
+                }
+            }
+        }
+    }
+}
+
+kafka {
+    bootstrap.servers = "localhost:9092"
+    bootstrap.servers = ${?BOOTSTRAP_SERVERS}
+    bootstrap.servers = ${?bootstrap.servers}
+}
+
+remote {
+    inputDirectory = /dev/null
+    destination = "destination"
+    scenarioId = "scenarioId"
+    spName = "spName"
+    systemId = "systemId"
+    remoteOutTopic = "REMOTE.OUT"
+    remoteInTopic = "REMOTE.IN"
+}
+
+//gatling {
+//    duration = "90 s"
+//    pause = "20 mill"
+//    rate = "10"
+//}

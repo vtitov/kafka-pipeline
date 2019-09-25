@@ -1,0 +1,127 @@
+= Diagram
+Valentin Titov <Titov.V.Igo@sberbank.ru>
+
+
+//:doctype: book
+:icons: font
+:source-highlighter: coderay
+:toc: left
+//:toclevels: 4
+:sec tlinks:
+:sectanchors:
+:docinfo:
+:nofooter:
+//:data-uri:
+
+:description: documentation
+
+
+== Diagram
+
+[plantuml, diagram-classes, png]
+----
+@startuml
+title Diagram
+skinparam handwritten true
+autonumber "[00]"
+
+participant Producer
+participant "monitoring-topic"
+
+'box "Pipeline" #LightBlue
+box "Pipeline"
+    participant "http-service"
+    participant "in-topic"
+    participant "in-table"
+    participant "monitoring-table"
+    participant "remote-in-table"
+    participant "remote-out-table"
+end box
+box "remote-topics"
+    participant "remote-in-topic"
+    participant "remote-out-topic"
+end box
+participant Consumer
+participant "subscriber"
+
+group REST
+Producer -> "http-service" : rq
+Producer <- "http-service" : rs
+end
+
+group Kafka Rq
+"http-service" -> "in-topic" : json
+"in-topic" -> "in-table" : json
+"in-table" -> "remote-in-table" : rq xml
+"remote-in-table" -> "remote-in-topic" : rq xml
+"Consumer" <- "remote-in-topic" : rq xml
+end
+"Consumer" -> "subscriber" : rq xml
+
+"Consumer" <- "subscriber" : rs xml
+
+group Kafka Rs
+"Consumer" -> "remote-out-topic" : rs xml
+"remote-out-table" <- "remote-out-topic" : rs xml
+end
+group Kafka Monitoring
+"monitoring-table" <- "remote-out-table"  : json
+"monitoring-table" -> "monitoring-topic" : json
+end
+
+
+'
+'group rq to master
+'ФП --> hdfs : put file
+'ФП -> master : REST
+'end
+'group schedule-job
+'master -> slave : submit build
+'note right : wait for resources
+'activate slave
+'
+'slave -> copyjob : start build
+'
+'activate copyjob
+'end
+'
+'group cloud-copy
+'note over copyjob: parse json
+'note over copyjob: get route
+'note over copyjob: start copying
+''copyjob -> copyjob : start copying
+'hdfs --> nfs : copy file
+'copyjob -> kafka : put rq xml
+'
+'note over copyjob : wait for webhook
+''copyjob -> copyjob : wait for webhook
+'
+'deactivate copyjob
+'
+'end
+'
+'group remote-copy
+'kafka -> Consumer : get rq xml
+'Consumer -> Consumer : start copying
+'kafka <-- Consumer : put rs xml
+'end
+'
+'group cloud-get-confirmation
+'master <-- kafka : get rs xml
+'master -> copyjob : call webhook
+'activate copyjob
+'note over copyjob: parse xml
+'hdfs <-- copyjob : put rs xml to file
+'master <-- copyjob : rc
+'
+'destroy copyjob
+'deactivate slave
+'end
+
+@enduml
+----
+
+[source,sh]
+----
+curl http://...
+----
