@@ -1,0 +1,65 @@
+= Deduplication
+:revealjs_theme: beige
+:revealjs_slideNumber: true
+//:revealjs_autoSlide: 600000 // us
+:revealjs_mouseWheel: true
+:revealjs_transition: concave
+:source-highlighter: highlightjs
+:source-highlighter: pygments
+:revealjs_width: 1200
+:revealjs_height: 900
+
+:icons: font
+
+:toc:
+
+//== Rules
+//* "Can't be tested" ⇒ can't be deployed
+//* Same environment for development, test & production
+//* Language is domain specific (DSL)
+//* Instructions are executable
+//* DNY
+//* KISS
+
+== Topics
+ TBD
+
+
+== Reasons to Use Kafka
+* Logging Messages
+* K/V Store
+
+== Topology
+[source,scala]
+----
+  def dedup = {
+    inStream
+      .peek{ case (k,v) => logger.debug(s"read from input: ${k}")}
+      .leftJoin(duplicatesTblStream)(
+        {case(k,v)=> k},
+        {case(v,rv) => if(rv==null) v else null}
+      )
+      .peek{ case (k,v) => logger.debug(s"join result: ${k}")}
+      .filter{case(k,v) => v != null}
+      .through(duplicatesTable)
+      .to(toRemoteTable)
+  }
+----
+
+== Buld & Test
+[source,sh]
+( git clone https://github.com/vtitov/kafka-pipeline.git \
+  cd kafka-pipeline && \
+  ./sbt \
+    test it:test assembly
+)
+
+
+== Q&A
+
+//== Backup Slides
+//TBD
+//
+//[NOTE.speaker]
+//--
+//чынлыкта алай ук начар түгел
