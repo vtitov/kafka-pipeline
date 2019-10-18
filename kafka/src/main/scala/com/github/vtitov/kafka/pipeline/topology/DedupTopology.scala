@@ -26,15 +26,22 @@ object DedupTopology extends StrictLogging {
 
   lazy val shardingFactor = globalConfig.remoteSystem.shardedTopics.shardsNumber.value
 
-  type DedupK = String
-  type DedupV = String
-//  type DedupK = Array[Byte]
-//  type DedupV = Array[Byte]
+//  type RawDedupK = String
+//  type RawDedupV = String
+//  type DedupK = String
+//  type DedupV = String
+  type RawDedupK = Array[Byte]
+  type RawDedupV = Array[Byte]
+  type DedupK = Array[Byte]
+  type DedupV = Array[Byte]
   type DedupKV = KeyValue[DedupK,DedupV]
   type DedupProducerRecord = ProducerRecord[DedupK,DedupV]
   type DedupPair = (DedupK,DedupV)
   type DedupPairWithRight = (DedupK,(DedupV,DedupV))
 
+
+  lazy val digestAlgorithm = "SHA-256"
+  lazy val digestBytes: Array[Byte]=>Array[Byte] = java.security.MessageDigest.getInstance(digestAlgorithm).digest
 
   lazy val debug = globalConfig.remoteSystem.loopback.getOrElse(false)
   lazy val isLoopback = globalConfig.remoteSystem.loopback.getOrElse(false)
@@ -64,7 +71,8 @@ class DedupTopology extends StrictLogging {
 
   lazy val builder = new StreamsBuilder
 
-  lazy val inStream: KStream[DedupK,DedupV] = builder.stream[DedupK,DedupV](inTopic)
+  lazy val generalInStream: KStream[RawDedupK,RawDedupV] = builder.stream[RawDedupK,RawDedupV](generalInTopic)
+  lazy val indexedInStream: KStream[DedupK,DedupV] = builder.stream[DedupK,DedupV](inTopic)
 
   //lazy val duplicatesStream: KStream[String, String] = builder.stream[String, String](duplicatesTable)
   lazy val duplicatesTblStream: GlobalKTable[DedupK,DedupV] = builder.globalTable[DedupK,DedupV](duplicatesTable)
@@ -72,9 +80,9 @@ class DedupTopology extends StrictLogging {
     logger.debug(s"builder.stream $duplicatesTable.$idx")
     builder.globalTable[DedupK, DedupV](s"$duplicatesTable.$idx")
   }.toList
+
   //lazy val toRemoteTblStream: GlobalKTable[DedupK,DedupV] = builder.globalTable[DedupK,DedupV](toRemoteTable)
   //lazy val fromRemoteTblStream: GlobalKTable[DedupK,DedupV] = builder.globalTable[DedupK,DedupV](fromRemoteTable)
-
 
   lazy val toRemoteStream: KStream[DedupK,DedupV] = builder.stream[DedupK,DedupV](toRemoteTable)
   lazy val toRemoteStreams = (0 until shardingFactor).map { idx =>
@@ -95,8 +103,20 @@ class DedupTopology extends StrictLogging {
     (k:DedupK, v:DedupV) => calculateSharde(k) == idx
   }
 
+  def addIndexingTopology/*:Topology*/ = {
+    generalInStream
+      .map{case (_,v) =>
+        //val newK:String = java.lang.String.format("%064x", new java.math.BigInteger(1, java.security.MessageDigest.getInstance("SHA-256").digest(v)))
+        //val newK:String = java.security.MessageDigest.getInstance(digestAlgorithm).digest(v).map("%02x".format(_)).mkString
+        //val newK = java.security.MessageDigest.getInstance(digestAlgorithm).digest(v)
+        val newK = digestBytes(v)
+        (newK,v)
+        }
+      .to(inTopic)
+    this
+  }
   def addMainTopologyShardes(implicit probe: Option[ActorRef] = None)/*:Topology*/ = {
-    val branched = inStream
+    val branched = indexedInStream
       //.peek { case (k, v) => logger.debug(s"read from input: $k") }
       .peek { case (k, v) => logger.debug(s"read from input: $k -> $v") }
       .branch(shardingPredicates: _*)
@@ -127,26 +147,31 @@ class DedupTopology extends StrictLogging {
         .peek { case (k, v) => logger.debug(s"to remoteInTopic ($remoteInTopic): ${k}") }
         .to(remoteInTopic)
     }
+    addIndexingTopology
     this
   }
 
   def addMainTopologyNoShardes(implicit probe: Option[ActorRef] = None)/*:Topology*/ = {
-    inStream
+    indexedInStream
       .peek{ case (k,v) => logger.debug(s"read from input: ${k}")}
       .leftJoin(duplicatesTblStream)(
         {case(k,v)=> k},
         //{case(v,rv) => if(rv==null) v else null}
         {case(v,rv) =>
-          if(rv==null) {val inst = Instant.now(); (inst.get(MILLI_OF_SECOND) + inst.getEpochSecond * 1000).toString}
+          //if(rv==null) {val inst = Instant.now(); (inst.get(MILLI_OF_SECOND) + inst.getEpochSecond * 1000).toString}
+          if(rv==null) {v}
           else null
         }
       )
       .peek{ case (k,v) => logger.debug(s"join result: ${k}")}
-      .filter{case(k,v) =>
-        v != null
+      .filter{case(k,v) => v != null}
+      .through(toRemoteTable)
+      .map{case(k,v) => // we do not want to store whole message in the cache
+        val inst = Instant.now()
+        val millis = inst.get(MILLI_OF_SECOND) + inst.getEpochSecond * 1000
+        k -> BigInt(millis).toByteArray
       }
-      .through(duplicatesTable)
-      .to(toRemoteTable)
+      .to(duplicatesTable)
       //.to(duplicatesTable)
 
 //    toRemoteStream
@@ -158,6 +183,7 @@ class DedupTopology extends StrictLogging {
 
     //duplicatesStream.to(remoteInTopic)
     //duplicatesStream.to(remoteInTopic)
+    addIndexingTopology
     this
   }
 

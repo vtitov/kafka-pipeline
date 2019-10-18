@@ -112,6 +112,7 @@ lazy val core = project
     libraryDependencies ++= kafkaStreamsProvidedDeps, // FIXME refactor, move to kafka-core
     libraryDependencies ++= Seq(
       csvDeps,
+      fakerDeps,
       jsonDeps,
       httpClientDeps,
       scalaModuleDeps,
@@ -279,6 +280,7 @@ lazy val service = project
   .settings(commonReSettings:_*)
   .settings(
     Defaults.itSettings,
+    //IntegrationTest /  javaOptions ++= Seq("-Dconfig.file=src/it/resources/application.conf"),
     libraryDependencies ++= itDeps ++ kafkaITDeps,
 
   )

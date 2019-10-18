@@ -1,0 +1,6 @@
+---
+
+#artefact_version: 0.0.0+3-f8138e00+20191017-2119-SNAPSHOT
+#jar_file: "{{ ansible_user_dir }}/kafka-pipeline-assembly-{{ artefact_version }}.jar"
+#remote_install_base: "{{ ansible_user_dir }}/.local"
+

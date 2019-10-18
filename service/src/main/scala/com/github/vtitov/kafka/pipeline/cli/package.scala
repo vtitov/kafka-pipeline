@@ -4,22 +4,19 @@ import java.io.{File => JFile}
 
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.StrictLogging
-import org.apache.kafka.streams.{KafkaStreams}
+import org.apache.kafka.streams.KafkaStreams
 import com.github.vtitov.kafka.pipeline.config.BuildInfo
 import com.github.vtitov.kafka.pipeline.embedded.EKafka
 import com.github.vtitov.kafka.pipeline.emulator.RemoteEmulator
-import com.github.vtitov.kafka.pipeline.kafka.Admin
+import com.github.vtitov.kafka.pipeline.kafka.{Admin, Producer, StreamUtils}
 
 import scala.util.{Failure, Success, Try}
 import com.github.vtitov.kafka.pipeline.helpers._
-import com.github.vtitov.kafka.pipeline.kafka.StreamUtils
-import com.github.vtitov.kafka.pipeline.rest.{RestService}
+import com.github.vtitov.kafka.pipeline.rest.RestService
 import com.github.vtitov.kafka.pipeline.topology.DedupTopology
 import scopt.{DefaultOParserSetup, OParserSetup}
 
 import scala.collection.JavaConverters._
-
-
 import resource._
 
 package object cli extends StrictLogging {
@@ -106,6 +103,30 @@ package object cli extends StrictLogging {
               success)
         )
 
+//      randomLines: Option[Int] = None,
+//      minRandomWords: Option[Int] = None,
+//      maxRandomWords: Option[Int] = None,
+        ,cmd(Random_Text)
+          .action((_, c) => c.copy(mode = Random_Text))
+          .text("  generate random text.")
+        .children(
+          opt[Int]("lines")
+            .action( (n, c) => c.copy(randomLines = n)).text("random text lines"),
+          opt[Int]("min-words")
+          .action( (n, c) => c.copy(minRandomWords = n)).text("min words per sentence"),
+          opt[Int]("max-words")
+            .action( (n, c) => c.copy(maxRandomWords = n)).text("max words per sentence"),
+          opt[JFile]("out")
+            .action( (f, c) =>
+              c.copy(randomOutput = f)).text("random text output file"),
+          opt[String]("out-topic")
+            .action( (f, c) =>
+              c.copy(randomOutTopic = Some(f))).text("write random text to topic"),
+          checkConfig(
+            c =>
+              success)
+        )
+
         ,cmd(Process_Template)
           .action((_, c) => c.copy(mode = Process_Template))
           .text("  process template.")
@@ -185,6 +206,7 @@ package object cli extends StrictLogging {
           )
           case Some(Http) => doHttp(config)
           case Some(Process_Template) => doProcessTemplate(config)
+          case Some(Random_Text) => doRandomText(config)
           case Some(Query) => doQuery(config)
           case Some(Streams) => doRunStreams(config)
           case Some(Create_Topics) => doCreateTopics(config)
@@ -250,6 +272,30 @@ package object cli extends StrictLogging {
     os.write.over(Path(config.jinjaOutput.getAbsolutePath),output)
   }
 
+  def doRandomText(config: CliConfig) = {
+    import com.github.javafaker.Faker
+
+    val faker = new Faker()
+    val totalLines = config.randomLines
+    val minWords:Int = config.minRandomWords
+    val additionalWords:Int = config.maxRandomWords-config.minRandomWords
+    val producer = config.randomOutTopic.map(_ => new Producer)
+    (1 to totalLines).foreach{n=>
+      val sentence = faker.lorem().sentence(minWords, additionalWords)
+      os.write.append(
+        os.Path(config.randomOutput.getAbsolutePath),
+        sentence)
+      os.write.append(
+        os.Path(config.randomOutput.getAbsolutePath),
+        "\n")
+      logger.debug(s"${n}th sentece of ${totalLines} written to file")
+      producer.foreach{pr=>
+        pr.send(config.randomOutTopic.get, null, sentence)
+        logger.debug(s"${n}th sentece of ${totalLines} sent to topic")
+      }
+    }
+  }
+
   def doHttp(config: CliConfig) = doRestServiceSleep(config)
 
   def doRestServiceSleep(config: CliConfig) = {
@@ -283,6 +329,11 @@ package cli {
                         jinjaVars: JFile = new JFile("vars"),
                         jinjaTemplate: JFile = new JFile("template.j2"),
                         jinjaOutput: JFile = new JFile("template.out"),
+                        randomOutput: JFile = new JFile("lorem.out"),
+                        randomOutTopic: Option[String] = None,
+                        randomLines: Int = 1000,
+                        minRandomWords: Int = 10,
+                        maxRandomWords: Int = 1000,
                         mode: String = "",
                         kwargs: Map[String, String] = Map(),
                       )
@@ -306,6 +357,7 @@ package cli {
     case object Remote_Emulator   extends CliCommand
     case object Process_Template  extends CliCommand
     case object Create_Topics     extends CliCommand
+    case object Random_Text       extends CliCommand
   }
 
 }

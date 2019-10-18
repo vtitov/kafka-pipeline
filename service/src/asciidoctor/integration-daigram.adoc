@@ -24,10 +24,14 @@ autonumber "[00]"
 
 participant Producer
     participant "http-service"
+box "Input topics"
+    participant "general-in-topic"
+    participant "in-topic"
+end box
 box "Pipeline" #LightBlue
 'box "Pipeline"
-    participant "in-topic"
-    participant "dublicates-table"
+
+    participant "dublicates-table(s)"
     participant "remote-in-table"
 end box
 box "remote-topics"
@@ -36,20 +40,24 @@ end box
 participant Consumer
 
 == Feed ==
-group REST
+group Kafka client
+"Producer" -> "general-in-topic" : message(v)
+"general-in-topic" -> "in-topic" : message(k,v)
+"Producer" -> "in-topic" : message(k,v)
+end
+group Rest client
 Producer -> "http-service" : rq
 Producer <- "http-service" : rs
-"http-service" -> "in-topic" : message
+"http-service" -> "in-topic" : message(k,v)
 end
-"Producer" -> "in-topic" : message
 == Process ==
 group Kafka Rq
-"in-topic" -> "dublicates-table" : message
-"dublicates-table" -> "remote-in-table" : message
-"remote-in-table" -> "remote-in-topic" : message
+"in-topic" -> "dublicates-table(s)" : message(k,v)
+"dublicates-table(s)" -> "remote-in-table" : message(k,v)
+"remote-in-table" -> "remote-in-topic" : message(k,v)
 end
-== Consime ==
-"Consumer" <- "remote-in-topic" : message
+== Consume ==
+"Consumer" <- "remote-in-topic" : message(k,v)
 
 @enduml
 ----

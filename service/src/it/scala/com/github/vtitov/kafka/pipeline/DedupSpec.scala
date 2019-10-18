@@ -104,6 +104,7 @@ class DedupSpec
     // start http
     resources += "http" -> com.github.vtitov.kafka.pipeline.cli.startRestService(null)
     // start streams
+    System.setProperty("application.id", s"app-kafka-pipeline-it-test-${UUID.randomUUID()}")
     resources += "streams" -> com.github.vtitov.kafka.pipeline.cli.startStreamsWithShutdownHookThread
 
     lazy val isLoopback = globalConfig.remoteSystem.loopback.getOrElse(false)
@@ -157,7 +158,8 @@ class DedupSpec
           totallySend.zipWithIndex.foreach{ case((k,v),idx) =>
             //note(s"send to kafka $k -> $v")
             logger.debug(s"send $k -> $v")
-            producer.send(globalConfig.remoteSystem.topics.inTopic, k,v)
+            //producer.send(globalConfig.remoteSystem.topics.inTopic, k,v)
+            producer.send(globalConfig.remoteSystem.topics.generalInTopic, null, v)
             //if(idx % batchSize == 0) {Thread.sleep(batchPause)}
           }
           logger.debug(s"totally sent ${totallySend.length} messages")

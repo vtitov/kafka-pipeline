@@ -1,0 +1,63 @@
+---
+
+#- user:
+#    name: "{{ ansible_user }}"
+#    state: present
+#    register: ansible_user_registered
+#- debug:
+#    var: ansible_user_registered.home
+
+- debug:
+    var: ansible_user_dir
+
+- name: create directory if they don't exist
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - "{{ remote_install_path }}/logs/"
+
+
+- name: copy jar
+  copy: src={{ jar_file }} dest={{ remote_install_path }}/lib/
+  notify:
+    - jar_copied
+
+
+#- name: Unarchive configs & scripts
+#  unarchive:
+#    src: "{{ jar_file }}"
+#    #src: "{{ remote_install_path }}/lib/{{ jar_file }}"
+#    #remote_src: yes
+#    dest: "{{ remote_install_path }}"
+#    extra_opts:
+#      - 'conf/*'
+#      - 'scripts/*'
+- name: Unarchive configs & scripts
+  shell: unzip -n "{{ jar_file }}" 'conf/*' 'scripts/*'
+  args:
+    chdir: "{{ remote_install_path }}"
+    #warn: no # TODO use unarchive
+
+- name: make scripts executable
+  file:
+    path: "{{ item }}"
+    mode: u+x,g+x
+  with_fileglob:
+    - "{{ remote_install_path }}/scripts/*.sh"
+
+- name: Create a symbolic link
+  file:
+    src: ./scripts
+    dest: "{{ remote_install_path }}/bin"
+    state: link
+
+- name: template operation
+  template: src=local-rc.sh.j2 dest={{ remote_install_path }}/conf/local-rc.sh
+  notify:
+    - local_rc_created
+
+#- name: demo that parameterized roles work
+#  shell: echo just FYI, param1={{ param1 }}, param2 ={{ param2 }}
+
+

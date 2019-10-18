@@ -199,6 +199,12 @@ object Dependencies {
     //"io.rest-assured" % "scala-support" % restAssuredVersion % IntegrationTest,
     "org.hamcrest" % "hamcrest" % "2.1" % IntegrationTest
   )
+
+
+  lazy val fakerDeps = Seq(
+    "com.github.javafaker" % "javafaker" % javafakerVersion
+    //"com.github.javafaker" % "javafaker" % javafakerVersion % Test
+  )
   lazy val testDeps = Seq(
     // testing
     "org.scalacheck" %% "scalacheck" % "1.14.0" % Test,
@@ -210,7 +216,7 @@ object Dependencies {
 
     "com.github.javafaker" % "javafaker" % javafakerVersion % Test,
     "com.ibm.icu" % "icu4j" % "64.2" % Test
-  )
+  ) ++ fakerDeps
   lazy val akkaTestDeps = Seq(
     "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test,
     "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion % Test,

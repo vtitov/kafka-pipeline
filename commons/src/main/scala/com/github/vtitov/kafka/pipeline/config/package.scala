@@ -55,6 +55,7 @@ package config {
 
   final case class Topics
   (
+    generalInTopic:String      = "DEDUP.IN",
     inTopic:String             = "LOCAL.IN",
     inTopicDebug:String        = "LOCAL.IN.DEBUG", // FIXME remove
 

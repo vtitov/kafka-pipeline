@@ -1,0 +1,8 @@
+---
+
+artefact_name: 'kafka-pipeline'
+remote_install_path: '{{ remote_install_base }}/{{ artefact_name }}/{{ artefact_version }}'
+
+application_id: 'app-kafka-pipeline'
+bootstrap_servers: 'localhost:9092'
+message_settings_uid: '733f652d-53d0-42ff-876b-ad21015c20c1'

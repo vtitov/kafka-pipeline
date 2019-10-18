@@ -1,6 +1,6 @@
 package com.github.vtitov.kafka.pipeline.topology
 
-import java.nio.charset.StandardCharsets
+import java.nio.charset.{Charset, StandardCharsets}
 import java.nio.file.DirectoryNotEmptyException
 import java.util.UUID
 
@@ -147,7 +147,11 @@ class DedupTopologySpec
 
             //lazy val loremMessagesToSend = genLoremTexts.map{ v => newRqUid -> v}
             //lazy val loremMessagesToSend = genLoremTexts.zipWithIndex.map{case(v,k) => k.toString -> v}
-            lazy val loremMessagesToSend = genLoremTexts.zip(genKeys).map{case(v,k) => k.toString -> v}
+            //lazy val loremMessagesToSend = genLoremTexts.zip(genKeys).map{case(v,k) => k.toString -> v}
+            lazy val loremMessagesToSend = genLoremTexts.map{
+              /*case*/ v:String => (digestBytes(v.getBytes(StandardCharsets.UTF_8)), v)
+              //case v:Array[Byte] => (digestBytes(v), v)
+            }
             lazy val lastMessagesToSend = Seq(Seq.fill(32)('f').mkString -> "!!! last message !!!")
             lazy val duplicatesAppended = (loremMessagesToSend ++ loremMessagesToSend)
             lazy val duplicates = duplicatesAppended
@@ -157,10 +161,13 @@ class DedupTopologySpec
             allMessagesToSend.zipWithIndex.foreach{ case(msg,idx) =>
               //logger.debug(s"message to send ($idx): $msg")
             }
-            val factory = new ConsumerRecordFactory[String, String](inTopic, new StringSerializer(), new StringSerializer())
+            //val factory = new ConsumerRecordFactory[String, String](inTopic, new StringSerializer(), new StringSerializer())
+            val factory = new ConsumerRecordFactory[String, String](generalInTopic, new StringSerializer(), new StringSerializer())
             logger.debug(s"send all")
             //testDriver.pipeInput(factory.create(inTopic, allMessagesToSend.asJava))
-            allMessagesToSend.foreach(msg => testDriver.pipeInput(factory.create(inTopic, msg.key, msg.value)))
+            //allMessagesToSend.foreach(msg => testDriver.pipeInput(factory.create(inTopic, msg.key, msg.value)))
+            //allMessagesToSend.foreach(msg => testDriver.pipeInput(factory.create(generalInTopic, null, msg.value)))
+            allMessagesToSend.foreach(msg => testDriver.pipeInput(factory.create(msg.value)))
             logger.debug(s"all was sent")
 
             Seq(
