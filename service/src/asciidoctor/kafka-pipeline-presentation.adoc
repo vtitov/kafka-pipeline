@@ -11,6 +11,10 @@
 
 :icons: font
 
+:imagesdir: ./images
+:iconsdir: ./icons
+:stylesdir: ./styles
+
 :toc:
 
 //== Rules
@@ -24,6 +28,18 @@
 == Topics
  TBD
 
+
+== Images
+
+=== Kafka
+image::369px-Apache_kafka.svg.png[]
+=== Redis
+image::redis-character-5d75f1d24a785.svg[]
+=== API
+image::breach-of-contract.png[]
+
+=== Treeswing
+image::computer_book_treeswing_pictures.jpg[]
 
 == Reasons to Use Kafka
 * Logging Messages
