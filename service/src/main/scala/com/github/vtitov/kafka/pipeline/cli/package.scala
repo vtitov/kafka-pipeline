@@ -257,6 +257,7 @@ package object cli extends StrictLogging {
         }
       }
     }
+    //System.exit(0) // TODO refactor services to run until interrupted instead of Thread.sleep in main method
   }
 
   def doProcessTemplate(config: CliConfig) = {
@@ -270,6 +271,7 @@ package object cli extends StrictLogging {
     val template = os.read(os.Path(config.jinjaTemplate.getAbsolutePath))
     val output = renderJinja(template,context)
     os.write.over(Path(config.jinjaOutput.getAbsolutePath),output)
+    //System.exit(0) // TODO refactor services to run until interrupted instead of Thread.sleep in main method
   }
 
   def doRandomText(config: CliConfig) = {
@@ -294,6 +296,7 @@ package object cli extends StrictLogging {
         logger.debug(s"${n}th sentece of ${totalLines} sent to topic")
       }
     }
+    //System.exit(0) // TODO refactor services to run until interrupted instead of Thread.sleep in main method
   }
 
   def doHttp(config: CliConfig) = doRestServiceSleep(config)

@@ -282,7 +282,15 @@ lazy val service = project
     Defaults.itSettings,
     //IntegrationTest /  javaOptions ++= Seq("-Dconfig.file=src/it/resources/application.conf"),
     libraryDependencies ++= itDeps ++ kafkaITDeps,
-
+  )
+  .settings(
+    flatten in EditSource := false,
+    //    sources in EditSource ++= (baseDirectory.value / "src" / "ansible" * "*.yml").get,
+    //    targetDirectory in EditSource := baseDirectory.value / "target" / "ansible",
+    sources in EditSource ++= (baseDirectory.value / "src" * "*.yml").get,
+    targetDirectory in EditSource := baseDirectory.value / "target" ,
+    variables in EditSource += "version" -> version.value,
+    compile in Compile := ((compile in Compile) dependsOn (edit in EditSource)).value
   )
 
 

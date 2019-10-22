@@ -47,6 +47,11 @@ object DedupTopology extends StrictLogging {
   lazy val isLoopback = globalConfig.remoteSystem.loopback.getOrElse(false)
   lazy val isInMemoryKeyValueStore = globalConfig.remoteSystem.inMemoryKeyValueStore.getOrElse(false)
 
+  def takeElementsFromValueHead(v:DedupV, n:Int = 100):DedupV = {
+    if(v == null) Array.empty
+    else v.take(n)
+  }
+
   def materializedAs[K, V](storeName: String)(implicit keySerde: Serde[K], valueSerde: Serde[V]): Materialized[K, V, ByteArrayKeyValueStore] ={
     if(!isInMemoryKeyValueStore) Materialized.as(storeName)                          // 'default' store for production
     else Materialized.as(Stores.inMemoryKeyValueStore(storeName))  // inMemoryKeyValueStore for unit tests
@@ -115,7 +120,8 @@ class DedupTopology extends StrictLogging {
       .to(inTopic)
     this
   }
-  def addMainTopologyShardes(implicit probe: Option[ActorRef] = None)/*:Topology*/ = {
+
+  def addMainTopologyShardes0(implicit probe: Option[ActorRef] = None)/*:Topology*/ = { // TODO remove too naive approach
     val branched = indexedInStream
       //.peek { case (k, v) => logger.debug(s"read from input: $k") }
       .peek { case (k, v) => logger.debug(s"read from input: $k -> $v") }
@@ -151,6 +157,77 @@ class DedupTopology extends StrictLogging {
     this
   }
 
+  def addMainTopologyShardesWithTimestamp(implicit probe: Option[ActorRef] = None)/*:Topology*/ = { // some optimization
+    val branched = indexedInStream
+      //.peek { case (k, v) => logger.debug(s"read from input: $k") }
+      .peek { case (k, v) => logger.debug(s"read from input: $k -> $v") }
+      .branch(shardingPredicates: _*)
+
+    branched.zipWithIndex.foreach{ case (branch, idx) =>
+      branch.leftJoin(duplicatesTblStreams(idx))(
+        { case (k, v) => k },
+        { case(v,rv) => if(rv==null) v else null}
+//        { case (v, rv) =>
+//          if (rv == null) {
+//            val inst = Instant.now();
+//            (inst.get(MILLI_OF_SECOND) + inst.getEpochSecond * 1000).toString
+//          }
+//          else null
+//        }
+      )
+        .peek { case (k, v) => logger.debug(s"join ($idx) result: ${k}") }
+        .filter { case (k, v) =>
+          v != null
+        }
+        .to(s"$toRemoteTable.$idx")
+    }
+    toRemoteStreams.zipWithIndex.foreach { case (stream, idx) =>
+      stream
+        .map{case(k,v) => // we do not want to store whole message in the cache
+          val inst = Instant.now()
+          val millis = inst.get(MILLI_OF_SECOND) + inst.getEpochSecond * 1000
+          k -> BigInt(millis).toByteArray
+        }
+        .peek { case (k, v) => logger.debug(s"to duplicatesTable:$idx ($duplicatesTable.$idx): ${k}") }
+        .to(s"$duplicatesTable.$idx")
+      stream
+        .peek { case (k, v) => logger.debug(s"to remoteInTopic ($remoteInTopic): ${k}") }
+        .to(remoteInTopic)
+    }
+    addIndexingTopology
+    this
+  }
+
+  def addMainTopologyShardes(implicit probe: Option[ActorRef] = None)/*:Topology*/ = {
+    val branched = indexedInStream
+      //.peek { case (k, v) => logger.debug(s"read from input: $k") }
+      .peek { case (k, v) =>
+        logger.debug(s"read from input: $k -> ${takeElementsFromValueHead(v)}")
+      }
+      .branch(shardingPredicates: _*)
+
+    branched.zipWithIndex.foreach{ case (branch, idx) =>
+      branch.leftJoin(duplicatesTblStreams(idx))(
+        { case (k, v) => k },
+        { case(v,rv) => if(rv==null) v else null}
+      )
+        .peek { case (k, v) => logger.debug(s"join ($idx) result: ${k} -> ${takeElementsFromValueHead(v)}") }
+        .filter { case (k, v) => v != null }
+        .peek { case (k, v) => logger.debug(s"join ($idx) non-null result: ${k} -> ${takeElementsFromValueHead(v)}") }
+        .to(s"$toRemoteTable.$idx")
+    }
+    toRemoteStreams.zipWithIndex.foreach { case (stream, idx) =>
+      stream
+        .peek { case (k, v) => logger.debug(s"to duplicatesTable:$idx ($duplicatesTable.$idx): ${k} -> ${takeElementsFromValueHead(v)}") }
+        .to(s"$duplicatesTable.$idx")
+      stream
+        .peek { case (k, v) => logger.debug(s"to remoteInTopic ($remoteInTopic): ${k} -> ${takeElementsFromValueHead(v)}") }
+        .to(remoteInTopic)
+    }
+    addIndexingTopology
+    this
+  }
+
   def addMainTopologyNoShardes(implicit probe: Option[ActorRef] = None)/*:Topology*/ = {
     indexedInStream
       .peek{ case (k,v) => logger.debug(s"read from input: ${k}")}
@@ -172,7 +249,6 @@ class DedupTopology extends StrictLogging {
         k -> BigInt(millis).toByteArray
       }
       .to(duplicatesTable)
-      //.to(duplicatesTable)
 
 //    toRemoteStream
 //      .peek{ case (k,v) => logger.debug(s"to duplicatesTable: ${k}")}
