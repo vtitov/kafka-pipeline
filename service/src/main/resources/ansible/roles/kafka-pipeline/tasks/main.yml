@@ -46,6 +46,13 @@
   with_fileglob:
     - "{{ remote_install_path }}/scripts/*.sh"
 
+- name: jmx config 0600
+  file:
+    path: "{{ item }}"
+    mode: 0600
+  with_fileglob:
+    - "{{ remote_install_path }}/conf/jmxremote.*"
+
 - name: Create a symbolic link
   file:
     src: ./scripts
