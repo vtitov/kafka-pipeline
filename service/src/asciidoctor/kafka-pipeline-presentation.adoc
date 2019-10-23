@@ -5,7 +5,7 @@
 :revealjs_mouseWheel: true
 :revealjs_transition: concave
 :source-highlighter: highlightjs
-:source-highlighter: pygments
+:source-highlighter: pigments
 :revealjs_width: 1200
 :revealjs_height: 900
 
@@ -15,7 +15,9 @@
 :iconsdir: ./icons
 :stylesdir: ./styles
 
-:toc:
+//:toc: preamble
+:toc: macro
+:toc-title: Topics
 
 //== Rules
 //* "Can't be tested" ⇒ can't be deployed
@@ -25,44 +27,144 @@
 //* DNY
 //* KISS
 
-== Topics
- TBD
+//== Topics
+// toc::[]
 
 
-== Images
+image::atkritka_1430213987_373.jpg[width=900]
 
-=== Kafka
-image::369px-Apache_kafka.svg.png[]
-=== Redis
-image::redis-character-5d75f1d24a785.svg[]
-=== API
-image::breach-of-contract.png[]
+== Environment
 
-=== Treeswing
-image::computer_book_treeswing_pictures.jpg[]
+[%autowidth, cols="3*.^", frame=none, grid=rows]
+|===
+a|image:breach-of-contract.png[Contract,300,300,role="left"]
+a|image:redis-character-5d75f1d24a785.svg[Redis,300,300,role="left"]
+a|image:369px-Apache_kafka.svg.png[Kafka,200,300,role="left"]
 
-== Reasons to Use Kafka
-* Logging Messages
-* K/V Store
+|API
+|Key-Value Store
+|Kafka Messages
+|===
+
+== Treeswing
+
+image:computer_book_treeswing_pictures.jpg[Treeswing,560,700,role="left"]
+
+== Ockham
+
+//[%autowidth, cols="2*.^", frame=none, grid=rows]
+//|===
+[quote#occam_razor, Ockham]
+____
+Entities should not be multiplied without necessity
+____
+image:occam_razor.png[width=300, role="thumb right"]
+
+[NOTE.speaker]
+--
+//[quote#occam_razor, Wikipedia]
+//____
+Occam's razor (also Ockham's razor or Ocham's razor: Latin: novacula Occami; or law of parsimony: Latin: lex parsimoniae) is the problem-solving principle that states "Entities should not be multiplied without necessity."
+//____
+--
+
+//|===
+
+
+== KISS
+
+[%autowidth, cols="2*.^", frame=none, grid=rows]
+|===
+a|image:11exupery-inline1-500.jpg[role="left"]
+a|[quote#perfection_is_reached, Antoine de Saint Exupery]
+____
+It seems that perfection is reached not when there is nothing left to add,
+but when there is nothing left to take away
+____
+
+a|image:Albert_Einstein_Indian.jpg[role="left"]
+a|[quote#simple_as_possible, Dr. Albert Einstein]
+____
+Everything should be made as simple as possible but no simpler.
+____
+
+|===
+
+
+== Ockham`'
+image:Kiss 5.jpg[width=900, role="thumb left"]
+
+
+== Kafka @ NYT
+image::nyt-kafka-monolog.png[width=900]
+
+=== Kafka @ NYT
+image::nyt-kafka-previous.png[width=900]
+
+=== Kafka @ NYT
+image::nyt-kafka-Elasticsearch.png[width=900]
+
+=== Kafka @ NYT
+image::nyt-kafka-Implementation-on-Google-Cloud-Platform.png[width=900]
+
+
+== Stream-Table Duality
+image::topic-stream-table.png[width=1100]
+
+== Stream-Table Duality
+image::stream-table-animation-numVisitedLocations-changelog.gif[width=1100]
+
+//=== Stream-Table Duality
+//image::stream-table-animation-latestLocation.gif[width=900]
+//
+//=== Stream-Table Duality
+//image::stream-table-animation-numVisitedLocations.gif[width=900]
+//
+=== Stream-Table Duality
+image::stream-table-animation-latestLocation-changelog.gif[width=1100]
+
+
+== Environment`' (with Kafka)
+
+[%autowidth, cols="3*.^", frame=none, grid=rows]
+|===
+|image:369px-Apache_kafka.svg.png[Kafka,200,300,role="left"]
+|image:369px-Apache_kafka.svg.png[Kafka,200,300,role="left"]
+|image:369px-Apache_kafka.svg.png[Kafka,200,300,role="left"]
+
+
+|Kafka API
+|Kafka Tables
+|Kafka Streams
+|===
+
+
+//== Reasons to Use Kafka
+//* Logging Messages
+//* K/V Store
 
 == Topology
 [source,scala]
 ----
   def dedup = {
     inStream
-      .peek{ case (k,v) => logger.debug(s"read from input: ${k}")}
       .leftJoin(duplicatesTblStream)(
         {case(k,v)=> k},
         {case(v,rv) => if(rv==null) v else null}
       )
-      .peek{ case (k,v) => logger.debug(s"join result: ${k}")}
       .filter{case(k,v) => v != null}
       .through(duplicatesTable)
       .to(toRemoteTable)
   }
 ----
 
-== Buld & Test
+
+
+== Q&A
+
+== Backup Slides
+
+=== Buld & Test
 [source,sh]
 ( git clone https://github.com/vtitov/kafka-pipeline.git \
   cd kafka-pipeline && \
@@ -71,11 +173,6 @@ image::computer_book_treeswing_pictures.jpg[]
 )
 
 
-== Q&A
-
-//== Backup Slides
-//TBD
-//
 //[NOTE.speaker]
 //--
 //чынлыкта алай ук начар түгел
