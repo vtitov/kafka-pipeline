@@ -5,7 +5,8 @@
 :revealjs_mouseWheel: true
 :revealjs_transition: concave
 :source-highlighter: highlightjs
-:source-highlighter: pigments
+//:source-highlighter: prettify
+//:source-highlighter: pigments
 :revealjs_width: 1200
 :revealjs_height: 900
 
@@ -143,21 +144,24 @@ image::stream-table-animation-latestLocation-changelog.gif[width=1100]
 //* Logging Messages
 //* K/V Store
 
+
 == Topology
 [source,scala]
 ----
   def dedup = {
     inStream
       .leftJoin(duplicatesTblStream)(
-        {case(k,v)=> k},
-        {case(v,rv) => if(rv==null) v else null}
+        {case(k,v)=> k}, // <1>
+        {case(v,rv) => if(rv==null) v else null} // <2>
       )
-      .filter{case(k,v) => v != null}
+      .filter{case(k,v) => v != null} // <3>
       .through(duplicatesTable)
       .to(toRemoteTable)
   }
 ----
-
+<1> Key of record
+<2> Add, if not in duplicates table
+<3> Skip duplicate
 
 
 == Q&A

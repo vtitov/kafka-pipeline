@@ -62,6 +62,43 @@ end
 @enduml
 ----
 
+
+//== Components
+//[plantuml, diagram-components, png]
+//----
+//@startuml
+//queue "unindexed-queue"  
+//queue "inqueue"  
+//queue "duplicates"  
+//
+//"unindexed-queue" -> "inqueue" 
+//
+//'state join_state <<join>>
+//
+//'"inqueue"  "duplicates" <<fork>>
+//
+//
+//@enduml
+//----
+
+== Activities
+[plantuml, diagram-activities, png]
+----
+@startuml
+
+(*) -> "unindexed-queue"
+->[Add key (SHA,MD5,etc.)] "in-queue"
+if "Key in duplicates" then
+  -->[True. Skip record] (*)
+else
+  ->[False] "duplicates"
+  -> "out-queue"
+endif
+
+@enduml
+----
+
+
 //[source,sh]
 //----
 //curl http://...
