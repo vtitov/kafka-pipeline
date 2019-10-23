@@ -40,7 +40,7 @@ image::atkritka_1430213987_373.jpg[width=900]
 |===
 a|image:breach-of-contract.png[Contract,300,300,role="left"]
 a|image:redis-character-5d75f1d24a785.svg[Redis,300,300,role="left"]
-a|image:369px-Apache_kafka.svg.png[Kafka,200,300,role="left"]
+a|image:Apache_kafka.svg[Kafka,200,300,role="left"]
 
 |API
 |Key-Value Store
@@ -72,7 +72,13 @@ Occam's razor (also Ockham's razor or Ocham's razor: Latin: novacula Occami; or 
 //|===
 
 
-== KISS
+== KISS Principle
+
+image::KISS.jpg[width=700]
+
+
+
+== KISS Principle`'
 
 [%autowidth, cols="2*.^", frame=none, grid=rows]
 |===
@@ -129,9 +135,9 @@ image::stream-table-animation-latestLocation-changelog.gif[width=1100]
 
 [%autowidth, cols="3*.^", frame=none, grid=rows]
 |===
-|image:369px-Apache_kafka.svg.png[Kafka,200,300,role="left"]
-|image:369px-Apache_kafka.svg.png[Kafka,200,300,role="left"]
-|image:369px-Apache_kafka.svg.png[Kafka,200,300,role="left"]
+|image:Apache_kafka.svg[Kafka,200,300,role="left"]
+|image:Apache_kafka.svg[Kafka,200,300,role="left"]
+|image:Apache_kafka.svg[Kafka,200,300,role="left"]
 
 
 |Kafka API
