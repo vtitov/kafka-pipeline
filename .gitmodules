@@ -1,0 +1,3 @@
+[submodule "service/src/asciidoctor/images"]
+	path = service/src/asciidoctor/images
+	url = https://github.com/vtitov/kafka-pipeline-images.git
