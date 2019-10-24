@@ -27,6 +27,8 @@ addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.3.7")
 // if you use coursier, you must use sbt-scalafmt-coursier
 // addSbtPlugin("com.lucidchart" % "sbt-scalafmt-coursier" % "1.16")
 addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.4.1")
+libraryDependencies += "com.spotify" % "docker-client" % "8.9.0"
+
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-git" % "1.0.0")
 //addSbtPlugin("ph.samson" % "sbt-groovy" % "0.2.0-beta4")

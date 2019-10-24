@@ -230,6 +230,8 @@ lazy val kafka = project
 //import com.typesafe.sbt.SbtNativePackager._
 lazy val `kafka-pipeline` = project
   .disablePlugins(RevolverPlugin)
+  .enablePlugins(DockerPlugin)
+  .enablePlugins(DockerSpotifyClientPlugin)
   .dependsOn(
     Seq
     (service)
@@ -259,6 +261,9 @@ lazy val `kafka-pipeline` = project
     addArtifact(artifact in (Compile, assembly), assembly),
   )
   .settings(
+    packageName in Docker := packageName.value,
+    version in Docker := version.value,
+    dockerBaseImage := "openjdk",
   )
 
 lazy val service = project
